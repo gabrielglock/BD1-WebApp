@@ -159,7 +159,6 @@ INSERT INTO webapp.endereco_cliente (cliente_cpf, endereco) VALUES
 
 -- Reverter qualquer transação anterior que tenha falhado
 ROLLBACK;
-BEGIN;
 -- Declarar uma variável para armazenar o ID do pedido
 DO $$
 DECLARE
@@ -198,7 +197,6 @@ BEGIN
     INSERT INTO webapp.cliente_realiza_pedido (pedido_id_pedi, cliente_cpf, loja_cnpj)
     VALUES (id_pedido_inserido, '12345678910', '12345678900001');
 END $$;
-COMMIT;
 
 -- ATUALIZACAO DOS DADOS
 
@@ -218,6 +216,22 @@ UPDATE webapp.endereco_cliente
  SET endereco = 'Avenida L, 500'
  WHERE cliente_cpf = '12345678910';
  
+-- Adicionar coluna de observação em pedidos
+ALTER TABLE webapp.pedido
+ADD COLUMN observacao TEXT;
+
+-- Modificar o tipo de dados da coluna de contato em clientes
+ALTER TABLE webapp.cliente
+ALTER COLUMN contato TYPE VARCHAR(20);
+
+-- Remover coluna de horário de funcionamento em lojas
+ALTER TABLE webapp.loja
+DROP COLUMN hr_funcionamento;
+
+-- Adicionar restrição de unicidade ao email da loja
+ALTER TABLE webapp.loja
+ADD CONSTRAINT un_loja_email UNIQUE (email);
+
 
 -- VIZUALIAR TABELAS
 -- lojas
