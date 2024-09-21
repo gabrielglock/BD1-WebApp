@@ -19,6 +19,7 @@ CREATE TABLE webapp.cardapio (
     CONSTRAINT pk_cardapio PRIMARY KEY (id_card),
     CONSTRAINT fk_cardapio_loja FOREIGN KEY (loja_cnpj)
         REFERENCES webapp.loja (cnpj)
+        ON DELETE CASCADE
 );
 
 CREATE TABLE webapp.secao (
