@@ -25,9 +25,9 @@ public class PgLojaDAO implements LojaDAO {
                     "VALUES(?, ?, ?, ?, ?, ?);";
 
     private static final String READ_QUERY =
-            "SELECT cnpj, nome, contato, hr_funcionamento, endereco, email" +
-                    "FROM webapp.loja" +
-                    "WHERE cnpj = ?";
+            "SELECT cnpj, nome, contato, hr_funcionamento, endereco, email " +
+                    "FROM webapp.loja " +
+                    "WHERE cnpj = ?;";
 
     private static final String UPDATE_QUERY =
             "UPDATE webapp.loja " +
@@ -101,8 +101,44 @@ public class PgLojaDAO implements LojaDAO {
             return loja;
         }
     }
+
+    @Override
+    public Loja getFromString(String cnpj) throws SQLException {
+        Loja loja = new Loja();
+        try(Connection connection = dataSource.getConnection();
+            PreparedStatement statement = connection.prepareStatement(READ_QUERY)){
+            statement.setString(1, cnpj);
+            try(ResultSet resultSet = statement.executeQuery()){
+                if(resultSet.next()){
+                    loja.setCnpj(cnpj);
+                    loja.setNome(resultSet.getString("nome"));
+                    loja.setContato(resultSet.getString("contato"));
+                    loja.setHr_funcionamento(resultSet.getString("hr_funcionamento"));
+                    loja.setEndereco(resultSet.getString("endereco"));
+                    loja.setEmail(resultSet.getString("email"));
+
+                } else {
+                    throw new SQLException("Erro ao buscar loja: Loja não encontrada.");
+                }
+            }
+            catch (SQLException e){
+                Logger.getLogger(PgLojaDAO.class.getName()).log(Level.SEVERE, "DAO", e);
+                if(e.getMessage().equals("Erro ao buscar loja: Loja não encontrada.")) {
+                    throw e;
+                }
+                else {
+                    throw new SQLException("Erro ao buscar loja.");
+                }
+
+            }
+            return loja;
+        }
+
+    }
+
     @Override
     public void update(Loja loja) throws SQLException {
+
         try(Connection connection = dataSource.getConnection();
             PreparedStatement statement = connection.prepareStatement(UPDATE_QUERY)){
             statement.setString(1, loja.getNome());
@@ -131,7 +167,24 @@ public class PgLojaDAO implements LojaDAO {
     }
 
 
+    @Override
+    public void deleteFromString(String cpnj) throws SQLException{
+        try(Connection connection = dataSource.getConnection();
+            PreparedStatement statement = connection.prepareStatement(DELETE_QUERY)){
+            statement.setString(1, cpnj);
+            if(statement.executeUpdate() < 1){
+                throw new SQLException("Erro ao deletar loja: Loja não encontrada.");
+            }
+        } catch (SQLException e) {
+            Logger.getLogger(PgLojaDAO.class.getName()).log(Level.SEVERE, "DAO", e);
+            if(e.getMessage().equals("Erro ao deletar loja: Loja não encontrada.")) {
+                throw e;
+            }else {
+                throw new SQLException("Erro ao deletar loja.");
+            }
+        }
 
+    }
     @Override
     public void delete(Integer cpnj) throws SQLException{
         try(Connection connection = dataSource.getConnection();
