@@ -1,5 +1,4 @@
-package model;
-
+package com.bd.springweb.model;
 
 public class Loja {
 

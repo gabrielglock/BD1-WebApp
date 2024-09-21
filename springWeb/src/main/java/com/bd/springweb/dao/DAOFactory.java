@@ -1,6 +1,6 @@
-package dao;
+package com.bd.springweb.dao;
 
-import jdbc.ConnectionFactory;
+import com.bd.springweb.jdbc.ConnectionFactory;
 
 import java.io.IOException;
 import java.sql.Connection;

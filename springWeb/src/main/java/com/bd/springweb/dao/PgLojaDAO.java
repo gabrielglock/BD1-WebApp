@@ -1,52 +1,55 @@
-package dao;
+package com.bd.springweb.dao;
 
-import model.Loja;
+import com.bd.springweb.model.Loja;
+import org.springframework.stereotype.Repository;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import javax.sql.DataSource;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@Repository
 public class PgLojaDAO implements LojaDAO {
 
-    private final Connection connection;
+    private final DataSource dataSource;
+
+    public PgLojaDAO(DataSource dataSource) {
+        this.dataSource = dataSource;
+
+    }
 
     private static final String CREATE_QUERY =
-            "INSERT INTO j2ee.loja(cnpj, nome, contato, hr_funcionamento, endereco, email) " +
+            "INSERT INTO webapp.loja(cnpj, nome, contato, hr_funcionamento, endereco, email) " +
                     "VALUES(?, ?, ?, ?, ?, ?);";
 
     private static final String READ_QUERY =
             "SELECT cnpj, nome, contato, hr_funcionamento, endereco, email" +
-                    "FROM j2ee.loja" +
+                    "FROM webapp.loja" +
                     "WHERE cnpj = ?";
 
     private static final String UPDATE_QUERY =
-            "UPDATE j2ee.loja " +
+            "UPDATE webapp.loja " +
                     "SET nome = ?, contato = ?, hr_funcionamento = ?, endereco = ?, email = ? " +
                     "WHERE cnpj = ?;";
 
     private static final String DELETE_QUERY =
-            "DELETE FROM j2ee.loja " +
+            "DELETE FROM webapp.loja " +
             "WHERE cnpj = ?;";
 
 
     private static final String LIST_QUERY =
-            "SELECT cnpj, nome " +
-            "FROM j2ee.loja" +
-                "WHERE cnpj = ?;";
+            "SELECT cnpj, nome, contato, hr_funcionamento, endereco, email " +
+            "FROM webapp.loja;";
 
-    public PgLojaDAO(Connection connection) {
-        this.connection = connection;
-    }
+
 
 
     @Override
     public void create(Loja loja) throws SQLException {
-        try(PreparedStatement statement = connection.prepareStatement(CREATE_QUERY)){
+        try(Connection connection = dataSource.getConnection();
+            PreparedStatement statement = connection.prepareStatement(CREATE_QUERY)){
             statement.setString(1, loja.getCnpj());
             statement.setString(2, loja.getNome());
             statement.setString(3, loja.getContato());
@@ -69,7 +72,8 @@ public class PgLojaDAO implements LojaDAO {
     @Override
     public Loja read(Integer cnpj) throws SQLException {
         Loja loja = new Loja();
-        try(PreparedStatement statement = connection.prepareStatement(READ_QUERY)){
+        try(Connection connection = dataSource.getConnection();
+            PreparedStatement statement = connection.prepareStatement(READ_QUERY)){
             statement.setInt(1, cnpj);
             try(ResultSet resultSet = statement.executeQuery()){
                 if(resultSet.next()){
@@ -99,7 +103,8 @@ public class PgLojaDAO implements LojaDAO {
     }
     @Override
     public void update(Loja loja) throws SQLException {
-        try(PreparedStatement statement = connection.prepareStatement(UPDATE_QUERY)){
+        try(Connection connection = dataSource.getConnection();
+            PreparedStatement statement = connection.prepareStatement(UPDATE_QUERY)){
             statement.setString(1, loja.getNome());
             statement.setString(2, loja.getContato());
             statement.setString(3, loja.getHr_funcionamento());
@@ -129,7 +134,8 @@ public class PgLojaDAO implements LojaDAO {
 
     @Override
     public void delete(Integer cpnj) throws SQLException{
-        try(PreparedStatement statement = connection.prepareStatement(DELETE_QUERY)){
+        try(Connection connection = dataSource.getConnection();
+            PreparedStatement statement = connection.prepareStatement(DELETE_QUERY)){
             statement.setInt(1, cpnj);
             if(statement.executeUpdate() < 1){
                 throw new SQLException("Erro ao deletar loja: Loja não encontrada.");
@@ -147,12 +153,17 @@ public class PgLojaDAO implements LojaDAO {
     @Override
     public List<Loja> readAll() throws SQLException{
         List<Loja> lojaList = new ArrayList<>();
-        try(PreparedStatement statement = connection.prepareStatement(LIST_QUERY);
+        try(Connection connection = dataSource.getConnection();
+            PreparedStatement statement = connection.prepareStatement(LIST_QUERY);
             ResultSet result = statement.executeQuery()){
             while(result.next()){
                 Loja loja = new Loja();
                 loja.setCnpj(result.getString("cnpj"));
                 loja.setNome(result.getString("nome"));
+                loja.setContato(result.getString("contato"));
+                loja.setHr_funcionamento(result.getString("hr_funcionamento"));
+                loja.setEndereco(result.getString("endereco"));
+                loja.setEmail(result.getString("email"));
                 lojaList.add(loja);
             }
         } catch (SQLException e) {

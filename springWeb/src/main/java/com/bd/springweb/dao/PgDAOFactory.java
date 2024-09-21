@@ -1,4 +1,4 @@
-package dao;
+package com.bd.springweb.dao;
 
 import java.sql.Connection;
 
