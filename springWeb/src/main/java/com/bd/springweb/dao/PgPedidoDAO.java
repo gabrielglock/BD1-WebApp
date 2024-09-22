@@ -9,6 +9,8 @@ import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+
+
 @Repository
 public class PgPedidoDAO implements PedidoDAO{
 
@@ -20,6 +22,18 @@ public class PgPedidoDAO implements PedidoDAO{
     private static final String CREATE_QUERY =
             "INSERT INTO webapp.pedido (data, valor_total, cliente_cpf, loja_cnpj) " +
                     "VALUES (?, ?, ?, ?);";
+    private static final String LISTAR_POR_CLIENTE_QUERY =
+            "SELECT p.id, p.data, p.valor_total, c.cpf, c.nome, l.cnpj, l.nome AS loja_nome " +
+                    "FROM webapp.pedido p " +
+                    "JOIN webapp.cliente c ON p.cliente_cpf = c.cpf " +
+                    "JOIN webapp.loja l ON p.loja_cnpj = l.cnpj " +
+                    "WHERE c.cpf = ?";
+    private static final String LISTAR_POR_LOJA_QUERY =
+            "SELECT p.id, p.data, p.valor_total, c.cpf, c.nome, l.cnpj, l.nome AS loja_nome " +
+                    "FROM webapp.pedido p " +
+                    "JOIN webapp.cliente c ON p.cliente_cpf = c.cpf " +
+                    "JOIN webapp.loja l ON p.loja_cnpj = l.cnpj " +
+                    "WHERE l.cnpj = ?";
 
     private static final String READ_QUERY =
             "SELECT p.id, p.data, p.valor_total, c.cpf, c.nome, l.cnpj, l.nome AS loja_nome " +
@@ -54,13 +68,55 @@ public class PgPedidoDAO implements PedidoDAO{
             statement.setString(4, pedido.getLoja().getCnpj());
             statement.executeUpdate();
 
+            int rowsAffected = statement.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new SQLException("Falha ao criar pedido, nenhuma linha foi inserida.");
+            }
+
             // Obter o ID gerado
             try (ResultSet rs = statement.getGeneratedKeys()) {
                 if (rs.next()) {
                     pedido.setId(rs.getInt(1));
+                } else {
+                    throw new SQLException("Erro ao criar pedido, ID não gerado.");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();  // Imprime a exceção para o log
+            throw new SQLException("Erro ao criar pedido: " + e.getMessage());
+        }
+    }
+    @Override
+    public List<Pedido> listarPorCliente(String cpf) throws SQLException {
+        List<Pedido> pedidos = new ArrayList<>();
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(LISTAR_POR_CLIENTE_QUERY)) {
+
+            statement.setString(1, cpf);
+
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    Cliente cliente = new Cliente();
+                    cliente.setCpf(rs.getString("cpf"));
+                    cliente.setNome(rs.getString("nome"));
+                    Loja loja = new Loja();
+                    loja.setCnpj(rs.getString("cnpj"));
+                    loja.setNome(rs.getString("loja_nome"));
+
+                    Pedido pedido = new Pedido();
+                    pedido.setId(rs.getInt("id"));
+                    pedido.setData(rs.getDate("data"));
+                    pedido.setValorTotal(rs.getDouble("valor_total"));
+                    pedido.setCliente(cliente);
+                    pedido.setLoja(loja);
+
+                    pedidos.add(pedido);
                 }
             }
         }
+
+        return pedidos;
     }
 
 
@@ -147,6 +203,38 @@ public class PgPedidoDAO implements PedidoDAO{
                 pedidos.add(pedido);
             }
         }
+        return pedidos;
+    }
+    @Override
+    public List<Pedido> listarPorLoja(String lojaCnpj) throws SQLException {
+        List<Pedido> pedidos = new ArrayList<>();
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(LISTAR_POR_LOJA_QUERY)) {
+
+            statement.setString(1, lojaCnpj);
+
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    Cliente cliente = new Cliente();
+                    cliente.setCpf(rs.getString("cpf"));
+                    cliente.setNome(rs.getString("nome"));
+                    Loja loja = new Loja();
+                    loja.setCnpj(rs.getString("cnpj"));
+                    loja.setNome(rs.getString("loja_nome"));
+
+                    Pedido pedido = new Pedido();
+                    pedido.setId(rs.getInt("id"));
+                    pedido.setData(rs.getDate("data"));
+                    pedido.setValorTotal(rs.getDouble("valor_total"));
+                    pedido.setCliente(cliente);
+                    pedido.setLoja(loja);
+
+                    pedidos.add(pedido);
+                }
+            }
+        }
+
         return pedidos;
     }
 }

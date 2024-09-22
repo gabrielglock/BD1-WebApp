@@ -2,6 +2,7 @@ package com.bd.springweb.dao;
 
 import com.bd.springweb.model.Cliente;
 
+import com.bd.springweb.model.EnderecoCliente;
 import org.springframework.stereotype.Repository;
 
 
@@ -46,6 +47,12 @@ public class PgClienteDAO implements ClienteDAO {
             "SELECT cpf, nome, contato " +
                     "FROM webapp.cliente;";
 
+    private static final String CREATE_ENDERECO_QUERY =
+            "INSERT INTO webapp.endereco_cliente (cliente_cpf, endereco) " +
+                    "VALUES (?, ?);";
+    private static final String LISTAR_ENDERECOS_POR_CLIENTE_QUERY =
+            "SELECT cliente_cpf, endereco FROM webapp.endereco_cliente WHERE cliente_cpf = ?;";
+
     @Override
     public Cliente getFromString(String cpf) throws SQLException {
         Cliente cliente = new Cliente();
@@ -74,6 +81,16 @@ public class PgClienteDAO implements ClienteDAO {
 
             }
             return cliente;
+        }
+    }
+    @Override
+    public void addEnderecoCliente(EnderecoCliente enderecoCliente) throws SQLException {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(CREATE_ENDERECO_QUERY)) {
+
+            statement.setString(1, enderecoCliente.getCpf());
+            statement.setString(2, enderecoCliente.getEndereco());
+            statement.executeUpdate();
         }
     }
 
@@ -118,6 +135,29 @@ public class PgClienteDAO implements ClienteDAO {
         }
 
     }
+    @Override
+    public List<EnderecoCliente> listarEnderecoPorCliente(String cpfCliente) throws SQLException {
+
+
+        List<EnderecoCliente> enderecos = new ArrayList<>();
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(LISTAR_ENDERECOS_POR_CLIENTE_QUERY)) {
+
+            statement.setString(1, cpfCliente);
+
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    EnderecoCliente endereco = new EnderecoCliente();
+                    endereco.setCpf(rs.getString("cliente_cpf"));
+                    endereco.setEndereco(rs.getString("endereco"));
+                    enderecos.add(endereco);
+                }
+            }
+        }
+
+        return enderecos;
+    }
 
     @Override
     public Cliente read(Integer id) throws SQLException {
@@ -153,5 +193,30 @@ public class PgClienteDAO implements ClienteDAO {
             throw new SQLException("Erro ao listar clientes.");
         }
         return clienteList;
+    }
+    @Override
+    public Cliente listarClienteComEnderecos(String cpfCliente) throws SQLException {
+        Cliente cliente = null;
+
+        // Primeiro, buscar os dados do cliente
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statementCliente = connection.prepareStatement(READ_QUERY)) {
+
+            statementCliente.setString(1, cpfCliente);
+
+            try (ResultSet rsCliente = statementCliente.executeQuery()) {
+                if (rsCliente.next()) {
+                    cliente = new Cliente();
+                    cliente.setCpf(rsCliente.getString("cpf"));
+                    cliente.setNome(rsCliente.getString("nome"));
+                    cliente.setContato(rsCliente.getString("contato"));
+
+                    // Agora, buscar os endereços do cliente
+                    cliente.setEnderecosCliente(listarEnderecoPorCliente(cpfCliente));
+                }
+            }
+        }
+
+        return cliente;
     }
 }

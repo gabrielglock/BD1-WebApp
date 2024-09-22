@@ -4,6 +4,7 @@ import com.bd.springweb.dao.PgClienteDAO;
 import com.bd.springweb.model.Cliente;
 
 
+import com.bd.springweb.model.EnderecoCliente;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,15 +18,15 @@ public class ClienteController {
 
     public ClienteController(PgClienteDAO pgClienteDAO) {this.pgClienteDAO = pgClienteDAO;}
 
-    @GetMapping("/api/clientes/{cpf}")
-    public ResponseEntity<Cliente> getFromString(@PathVariable String cpf) {
-        try {
-            Cliente cliente = pgClienteDAO.getFromString(cpf);
-            return ResponseEntity.ok(cliente);
-        } catch (SQLException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-    }
+//    @GetMapping("/api/clientes_daa/{cpf}")
+//    public ResponseEntity<Cliente> getFromString(@PathVariable String cpf) {
+//        try {
+//            Cliente cliente = pgClienteDAO.getFromString(cpf);
+//            return ResponseEntity.ok(cliente);
+//        } catch (SQLException e) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+//        }
+//    }
     @GetMapping("/api/clientes")
     public ResponseEntity<List<Cliente>> getAllLojas() {
         try {
@@ -53,4 +54,36 @@ public class ClienteController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
+    @PostMapping("/api/clientes/{cpf}/enderecos")
+    public ResponseEntity<Void> adicionarEndereco(@PathVariable String cpf, @RequestBody EnderecoCliente endereco) {
+        try {
+            endereco.setCpf(cpf);
+            pgClienteDAO.addEnderecoCliente(endereco);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    @GetMapping("/api/clientes/enderecos/{cpf}")
+    public ResponseEntity<List<EnderecoCliente>> listarEnderecosPorCliente(@PathVariable String cpf) {
+        try {
+            List<EnderecoCliente> enderecos = pgClienteDAO.listarEnderecoPorCliente(cpf);
+            return enderecos != null ? ResponseEntity.ok(enderecos) : ResponseEntity.notFound().build();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    @GetMapping("/api/clientes/{cpf}")
+    public ResponseEntity<Cliente> listarClienteComEnderecos(@PathVariable String cpf) {
+        try {
+            Cliente cliente = pgClienteDAO.listarClienteComEnderecos(cpf);
+            return cliente != null ? ResponseEntity.ok(cliente) : ResponseEntity.notFound().build();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 }

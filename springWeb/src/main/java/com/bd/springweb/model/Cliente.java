@@ -1,10 +1,13 @@
 package com.bd.springweb.model;
 
+import java.util.List;
+
 public class Cliente {
 
     private String cpf;
     private String nome;
     private String contato;
+    private List<EnderecoCliente> enderecosCliente;
 
     // Construtor vazio
     public Cliente() {}
@@ -19,6 +22,14 @@ public class Cliente {
     // Getters e Setters
     public String getCpf() {
         return cpf;
+    }
+
+    public List<EnderecoCliente> getEnderecosCliente() {
+        return enderecosCliente;
+    }
+
+    public void setEnderecosCliente(List<EnderecoCliente> enderecosCliente) {
+        this.enderecosCliente = enderecosCliente;
     }
 
     public void setCpf(String cpf) {

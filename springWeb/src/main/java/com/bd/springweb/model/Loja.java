@@ -10,6 +10,18 @@ public class Loja {
     private String endereco;
     private String email;
 
+    public Loja() {
+    }
+
+    public Loja(String cnpj, String nome, String contato, String hr_funcionamento, String endereco, String email) {
+        this.cnpj = cnpj;
+        this.nome = nome;
+        this.contato = contato;
+        this.hr_funcionamento = hr_funcionamento;
+        this.endereco = endereco;
+        this.email = email;
+    }
+
     public String getCnpj() {
         return cnpj;
     }

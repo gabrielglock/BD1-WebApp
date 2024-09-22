@@ -8,13 +8,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
+import java.util.List;
 
 @RestController
 public class PedidoController {
 
         private final PedidoDAO pedidoDAO;
 
-        @Autowired
         public PedidoController(PedidoDAO pedidoDAO) {
             this.pedidoDAO = pedidoDAO;
         }
@@ -39,16 +39,29 @@ public class PedidoController {
             }
         }
 
-        @PutMapping("/api/pedidos/{id}")
-        public ResponseEntity<Void> atualizarPedido(@PathVariable Integer id, @RequestBody Pedido pedido) {
+
+        @GetMapping("/api/pedidos/cliente/{cpf}")
+        public ResponseEntity<List<Pedido>> listarPedidosPorCliente(@PathVariable String cpf) {
             try {
-                pedido.setId(id);
-                pedidoDAO.update(pedido);
-                return ResponseEntity.ok().build();
+                List<Pedido> pedidos = pedidoDAO.listarPorCliente(cpf);
+                return pedidos.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(pedidos);
             } catch (SQLException e) {
+                e.printStackTrace();  // Log da exceção
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
         }
+        @GetMapping("/api/pedidos/loja/{cnpj}")
+        public ResponseEntity<List<Pedido>> listarPedidosPorLoja(@PathVariable String cnpj) {
+            try {
+                List<Pedido> pedidos = pedidoDAO.listarPorLoja(cnpj);
+                return pedidos.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(pedidos);
+            } catch (SQLException e) {
+                e.printStackTrace();  // Log da exceção
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+        }
+
+
 
 }
 
