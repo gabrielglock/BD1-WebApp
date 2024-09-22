@@ -21,36 +21,19 @@ CREATE TABLE webapp.cardapio (
         REFERENCES webapp.loja (cnpj)
         ON DELETE CASCADE
 );
-
-CREATE TABLE webapp.secao (
-    nome VARCHAR(100) NOT NULL,
-    cardapio_id_card INT,
-    CONSTRAINT pk_secao PRIMARY KEY (nome),
-    CONSTRAINT fk_secao_cardapio FOREIGN KEY (cardapio_id_card)
-        REFERENCES webapp.cardapio (id_card)
-);
-
-CREATE TABLE webapp.subsecao (
-    nome VARCHAR(100) NOT NULL,
-    secao_nome VARCHAR(100),
-    CONSTRAINT pk_subsecao PRIMARY KEY (nome),
-    CONSTRAINT fk_subsecao_secao FOREIGN KEY (secao_nome)
-        REFERENCES webapp.secao (nome)
-);
-
 CREATE TABLE webapp.produto (
-    id_prod SERIAL,
+    id SERIAL PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
-    preco NUMERIC(10, 2),
-    qtd_disponivel INT,
-    descricao VARCHAR(255),
-    subsecao_nome VARCHAR(100),
-    CONSTRAINT pk_produto PRIMARY KEY (id_prod),
-    CONSTRAINT fk_produto_subsecao FOREIGN KEY (subsecao_nome)
-        REFERENCES webapp.subsecao (nome),
+    preco DECIMAL(10, 2) NOT NULL,
+    qtd_disponivel INT NOT NULL,
+    descricao TEXT,
+    cardapio_id INT NOT NULL,
+    CONSTRAINT fk_cardapio_id FOREIGN KEY (cardapio_id) 
+        REFERENCES webapp.cardapio(id) ON DELETE CASCADE,
     CONSTRAINT ck_produto_preco CHECK (preco >= 0.00),
     CONSTRAINT ck_produto_qtd_disponivel CHECK (qtd_disponivel >= 0)
 );
+
 
 CREATE TABLE webapp.pedido (
     id_pedi SERIAL,
@@ -59,21 +42,18 @@ CREATE TABLE webapp.pedido (
     CONSTRAINT pk_pedido PRIMARY KEY (id_pedi),
     CONSTRAINT ck_pedido_valor_total CHECK (valor_total >= 0.00)
 );
-
-CREATE TABLE webapp.item_pedido (
-    preco NUMERIC(10, 2),
-    quantidade INT,
-    produto_id_prod INT,
-    pedido_id_pedi INT,
-    CONSTRAINT pk_item_pedido PRIMARY KEY (produto_id_prod, pedido_id_pedi),
-    CONSTRAINT fk_item_pedido_produto FOREIGN KEY (produto_id_prod)
-        REFERENCES webapp.produto (id_prod)
-        ON DELETE CASCADE,
-    CONSTRAINT fk_item_pedido_pedido FOREIGN KEY (pedido_id_pedi)
-        REFERENCES webapp.pedido (id_pedi)
-        ON DELETE CASCADE,
-    CONSTRAINT ck_item_pedido_preco CHECK (preco >= 0.00),
-    CONSTRAINT ck_item_pedido_quantidade CHECK (quantidade >= 0)
+CREATE TABLE webapp.pedido_produto (
+    pedido_id INT NOT NULL,
+    produto_id INT NOT NULL,
+    quantidade INT NOT NULL,
+    preco DECIMAL(10, 2) NOT NULL,
+    PRIMARY KEY (pedido_id, produto_id),
+    CONSTRAINT FOREIGN KEY (pedido_id) 
+        REFERENCES webapp.pedido(id) ON DELETE CASCADE,
+    CONSTRAINT FOREIGN KEY (produto_id) 
+        REFERENCES webapp.produto(id) ON DELETE CASCADE,
+    CONSTRAINT ck_pedido_prodtuo_preco CHECK (preco >= 0.00),
+    CONSTRAINT ck_pedido_produto_quantidade CHECK (quantidade >= 0)
 );
 
 CREATE TABLE webapp.cliente (
