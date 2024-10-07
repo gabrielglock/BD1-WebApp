@@ -166,11 +166,32 @@ public class PgClienteDAO implements ClienteDAO {
 
     @Override
     public void update(Cliente cliente) throws SQLException {
+        try(Connection connection = dataSource.getConnection();
+            PreparedStatement statement = connection.prepareStatement(UPDATE_QUERY)){
+            statement.setString(1, cliente.getNome());
+            statement.setString(2, cliente.getContato());
+            statement.setString(3, cliente.getCpf());
+            if(statement.executeUpdate() < 1){
+                throw new SQLException("Erro ao atualizar loja.");
+            }
+
+        } catch (SQLException e) {
+            Logger.getLogger(PgLojaDAO.class.getName()).log(Level.SEVERE, "DAO", e);
+            if (e.getMessage().equals("Erro ao atualizar loja.")) {
+                throw e;
+            }
+            else if(e.getMessage().contains("not-null")){
+                throw new SQLException("Erro ao atualizar loja: Existem campos em branco.");
+            } else {
+                throw new SQLException("Erro ao atualizar loja.");
+            }
+        }
 
     }
 
     @Override
     public void delete(Integer id) throws SQLException {
+
 
     }
 
