@@ -1,14 +1,26 @@
 package com.bd.springweb.model;
 
 import java.util.Date;
+import java.util.List;
 
 public class Pedido {
         private Integer id;
         private Date data;
         private Double valorTotal;
 
-        private Cliente cliente; // Um cliente realiza muitos pedidos
-        private Loja loja;
+        private String idCliente; // Um cliente realiza muitos pedidos
+        private String idLoja;
+        private List<PedidoProduto> produtos;
+
+    public List<PedidoProduto> getProdutos() {
+        return produtos;
+    }
+
+    public void setProdutos(List<PedidoProduto> produtos) {
+        this.produtos = produtos;
+    }
+
+
 
     public Integer getId() {
         return id;
@@ -34,21 +46,21 @@ public class Pedido {
         this.valorTotal = valorTotal;
     }
 
-    public Cliente getCliente() {
-        return cliente;
+    public String getIdCliente() {
+        return idCliente;
     }
 
-    public void setCliente(Cliente cliente) {
-        this.cliente = cliente;
+    public void setIdCliente(String idCliente) {
+        this.idCliente = idCliente;
     }
 
-    public Loja getLoja() {
-        return loja;
+    public String getIdLoja() {
+        return idLoja;
     }
 
-    public void setLoja(Loja loja) {
-        this.loja = loja;
+    public void setIdLoja(String idLoja) {
+        this.idLoja = idLoja;
     }
-// Getters, Setters, Construtores, e ToString()
+
 
 }

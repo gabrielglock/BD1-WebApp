@@ -91,4 +91,37 @@ public class PgProdutoDAO implements ProdutoDAO{
     public List<Produto> readAll() throws SQLException {
         return List.of();
     }
+
+    @Override
+    public boolean hasStock(Integer idProduto, Integer quantidade) {
+        String sql = "SELECT qtd_disponivel FROM webapp.produto WHERE id = ?";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, idProduto);
+            ResultSet rs = statement.executeQuery();
+
+            if (rs.next()) {
+                int quantidadeDisponivel = rs.getInt("qtd_disponivel");
+                return quantidadeDisponivel >= quantidade;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
+    public void updateStock(Integer idProduto, Integer quantidade) {
+        String sql = "UPDATE webapp.produto SET qtd_disponivel = qtd_disponivel - ? WHERE id = ?";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, quantidade);
+            stmt.setInt(2, idProduto);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }

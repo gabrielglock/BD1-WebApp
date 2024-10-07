@@ -1,7 +1,6 @@
 package com.bd.springweb.controller;
 
 import com.bd.springweb.dao.PgProdutoDAO;
-import com.bd.springweb.model.Pedido;
 import com.bd.springweb.model.Produto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +19,7 @@ public class ProdutoController {
 
 
     @PostMapping("/api/produtos")
-    public ResponseEntity<Void> criarPedido(@RequestBody Produto produto) {
+    public ResponseEntity<Void> criarProduto(@RequestBody Produto produto) {
         try {
             pgProdutoDAO.create(produto);
             return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -31,7 +30,7 @@ public class ProdutoController {
         }
     }
     @GetMapping("/api/produtos/{id}")
-    public ResponseEntity<Produto> buscarPedido(@PathVariable Integer id) {
+    public ResponseEntity<Produto> buscarProduto(@PathVariable Integer id) {
         try {
             Produto produto = pgProdutoDAO.read(id);
             return produto != null ? ResponseEntity.ok(produto) : ResponseEntity.status(HttpStatus.NOT_FOUND).build();

@@ -5,6 +5,7 @@ import com.bd.springweb.model.Cliente;
 
 
 import com.bd.springweb.model.EnderecoCliente;
+import com.bd.springweb.model.Loja;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,8 +28,21 @@ public class ClienteController {
 //            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 //        }
 //    }
-    @GetMapping("/api/clientes")
-    public ResponseEntity<List<Cliente>> getAllLojas() {
+
+
+    @PutMapping("/api/clientes/{cpf}")
+    public ResponseEntity<Void> updateCliente(@PathVariable String cpf, @RequestBody Cliente cliente) {
+        try {
+            cliente.setCpf(cpf);
+            pgClienteDAO.update(cliente);
+            return ResponseEntity.ok().build();
+        } catch (SQLException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+        @GetMapping("/api/clientes")
+    public ResponseEntity<List<Cliente>> getAllClientes() {
         try {
             List<Cliente> clientes = pgClienteDAO.readAll();
             return ResponseEntity.ok(clientes);

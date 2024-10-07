@@ -1,9 +1,8 @@
 package com.bd.springweb.controller;
 
-import com.bd.springweb.dao.PedidoDAO;
 import com.bd.springweb.dao.PgPedidoDAO;
 import com.bd.springweb.model.Pedido;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.bd.springweb.model.PedidoProduto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,24 +10,27 @@ import org.springframework.web.bind.annotation.*;
 import java.sql.SQLException;
 import java.util.List;
 
+
+
 @RestController
-public class PedidoController {
+public class PedidoController{
 
-        private final PgPedidoDAO pgPedidoDAO;
+    public PedidoController(PgPedidoDAO pgPedidoDAO) {
+        this.pgPedidoDAO = pgPedidoDAO;
+    }
 
-        public PedidoController(PgPedidoDAO pgPedidoDAO) {
-            this.pgPedidoDAO = pgPedidoDAO;
-        }
+    private final PgPedidoDAO pgPedidoDAO;
 
-        @PostMapping("/api/pedidos")
-        public ResponseEntity<Void> criarPedido(@RequestBody Pedido pedido) {
-            try {
-                pgPedidoDAO.create(pedido);
-                return ResponseEntity.status(HttpStatus.CREATED).build();
-            } catch (SQLException e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-            }
-        }
+
+//        @PostMapping("/api/pedidos")
+//        public ResponseEntity<Void> criarPedido(@RequestBody Pedido pedido) {
+//            try {
+//                pgPedidoDAO.create(pedido);
+//                return ResponseEntity.status(HttpStatus.CREATED).build();
+//            } catch (SQLException e) {
+//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+//            }
+//        }
 
         @GetMapping("/api/pedidos/{id}")
         public ResponseEntity<Pedido> buscarPedido(@PathVariable Integer id) {
@@ -61,7 +63,23 @@ public class PedidoController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
         }
+        @PostMapping("/api/pedidos/checkout")
+        public ResponseEntity<String> realizarCheckout(
+            @RequestBody Pedido pedido ){
+            String idCliente = pedido.getIdCliente();
+            String idLoja = pedido.getIdLoja();
+            List<PedidoProduto> produtos = pedido.getProdutos();
 
+
+        boolean sucesso = pgPedidoDAO.realizarPedido(idCliente, idLoja, produtos);
+
+        if (sucesso) {
+            return ResponseEntity.ok("Pedido realizado com sucesso.");
+        } else {
+
+            return ResponseEntity.badRequest().body("Falha ao realizar pedido. Estoque insuficiente.");
+        }
+    }
 
 
 }
